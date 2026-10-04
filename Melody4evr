@@ -1,0 +1,525 @@
+--==================================================
+-- MELODY MAIN
+-- DARK/LIGHT Ã¢â‚¬Â¢ SETTINGS FIX Ã¢â‚¬Â¢ CAMLOCK SMOOTH Ã¢â‚¬Â¢ TRAFFIC DOTS
+--==================================================
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
+local GuiService = game:GetService("GuiService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = " Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã Â­Â¨Ã Â§Å½Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ ",
+    Text = "Melody Dahood make sure to be cute",
+    Duration = 5
+})
+
+local Player = Players.LocalPlayer
+local me = Player
+local cam = workspace.CurrentCamera
+local mouse = me:GetMouse()
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+-- remove any previous instance (PlayerGui / CoreGui / gethui)
+pcall(function()
+    local old = PlayerGui:FindFirstChild("MELODY_EXE")
+    if old then old:Destroy() end
+end)
+pcall(function()
+    local cg = game:GetService("CoreGui")
+    local old = cg:FindFirstChild("MELODY_EXE")
+    if old then old:Destroy() end
+end)
+pcall(function()
+    if gethui then
+        local old = gethui():FindFirstChild("MELODY_EXE")
+        if old then old:Destroy() end
+    end
+end)
+
+--==================================================
+-- COLORS  (black + white)
+--==================================================
+local DARK = {
+    BG = Color3.fromRGB(24, 15, 25),
+    SURFACE = Color3.fromRGB(36, 21, 37),
+    CARD = Color3.fromRGB(50, 29, 49),
+    CARD2 = Color3.fromRGB(69, 40, 66),
+    BORDER = Color3.fromRGB(119, 72, 107),
+    WHITE = Color3.fromRGB(255, 239, 248),
+    MUTE = Color3.fromRGB(212, 171, 194),
+    DIM = Color3.fromRGB(164, 125, 150),
+}
+
+local LIGHT = {
+    BG = Color3.fromRGB(255, 242, 248),
+    SURFACE = Color3.fromRGB(250, 226, 239),
+    CARD = Color3.fromRGB(255, 252, 254),
+    CARD2 = Color3.fromRGB(255, 235, 245),
+    BORDER = Color3.fromRGB(235, 190, 214),
+    WHITE = Color3.fromRGB(75, 39, 59),
+    MUTE = Color3.fromRGB(145, 94, 118),
+    DIM = Color3.fromRGB(181, 137, 158),
+}
+
+local BG, SURFACE, CARD, CARD2, BORDER, WHITE, MUTE, DIM =
+    LIGHT.BG, LIGHT.SURFACE, LIGHT.CARD, LIGHT.CARD2, LIGHT.BORDER, LIGHT.WHITE, LIGHT.MUTE, LIGHT.DIM
+
+local PINK     = Color3.fromRGB(242, 105, 169)
+local PINKSOFT = Color3.fromRGB(255, 177, 211)
+local FONT     = Enum.Font.FredokaOne
+
+local Theme = {
+    Outline = Color3.fromRGB(242, 105, 169),
+    Text    = WHITE,
+    Accent  = Color3.fromRGB(242, 105, 169),
+    Mode    = "Light",
+}
+
+local ESP_COLORS = {
+    Color3.fromRGB(255, 60, 60), Color3.fromRGB(255, 140, 40), Color3.fromRGB(255, 220, 50),
+    Color3.fromRGB(60, 220, 100), Color3.fromRGB(60, 140, 255), Color3.fromRGB(160, 80, 255),
+    Color3.fromRGB(255, 100, 180), Color3.fromRGB(20, 20, 20), Color3.fromRGB(255, 255, 255),
+}
+local FOV_COLORS = ESP_COLORS
+local PICKER_COLORS = {
+    Color3.fromRGB(255, 60, 60), Color3.fromRGB(255, 140, 40), Color3.fromRGB(255, 220, 50),
+    Color3.fromRGB(60, 220, 100), Color3.fromRGB(60, 180, 255), Color3.fromRGB(80, 120, 255),
+    Color3.fromRGB(160, 80, 255), Color3.fromRGB(255, 100, 180), Color3.fromRGB(255, 175, 205),
+    Color3.fromRGB(255, 255, 255), Color3.fromRGB(180, 180, 190), Color3.fromRGB(40, 40, 50),
+}
+
+--==================================================
+-- STATE
+--==================================================
+local env = (getgenv and getgenv()) or _G
+local _G = env
+
+_G.SilentAim_Enabled = false
+_G.FOV_RADIUS = 0
+_G.ShowFOV = false
+_G.FOV_Color = Color3.fromRGB(255, 255, 255)
+_G.RevolverBypass = false
+_G.WallCheck = false
+_G.Knock_Check = false
+_G.ESP_Boxes = false
+_G.ESP_Names = false
+_G.ESP_Health = false
+_G.ESP_Color = Color3.fromRGB(255, 255, 255)
+_G.Speed_Enabled = false
+    _G.Speed_Value = 50
+    _G.Speed_Key = Enum.KeyCode.X
+    _G.Speed_ToggleEnabled = false
+    _G.Jump_Enabled = false
+    _G.Jump_Value = 50
+    _G.Jump_Key = Enum.KeyCode.C
+
+    local TriggerBot = {
+        MasterEnabled = false,
+        TriggerKey = Enum.KeyCode.T,
+        Active = false,
+        ClickDelay = 0.02,
+        Blacklist = {"Knife","Wallet","Phone","Chicken","Pizza","Flashlight","Medkit"}
+    }
+
+    _G.CamLock_Enabled = false
+    _G.CamLock_Key = Enum.KeyCode.V
+    _G.CamLock_Smoothness = 0.25
+    local camLockActive, lastCamLockDir, currentCamLockTarget = false, nil, nil
+
+    local _0x52a0d5 = { BulletSpread = { Enabled = true, Amount = 100 } }
+
+    if not _G.SaturnConfigs then _G.SaturnConfigs = {} end
+    if not _G.SaturnWhitelist then _G.SaturnWhitelist = {} end -- [userId] = true
+
+    local ToggleUI = {}
+    local SliderUI = {}
+    local refreshWeaponButtons -- forward declare (filled in skins section)
+
+    local function isWhitelisted(plr)
+        if not plr then return false end
+        local id = plr.UserId
+        if _G.SaturnWhitelist[id] == true then return true end
+        if _G.SaturnWhitelist[tostring(id)] == true then return true end
+        -- name fallback
+        if _G.SaturnWhitelist[plr.Name] == true then return true end
+        if _G.SaturnWhitelist[string.lower(plr.Name)] == true then return true end
+        return false
+    end
+
+    local function setWhitelisted(plr, state)
+        if not plr then return end
+        local id = plr.UserId
+        if state then
+            _G.SaturnWhitelist[id] = true
+            _G.SaturnWhitelist[tostring(id)] = true
+            _G.SaturnWhitelist[plr.Name] = true
+            _G.SaturnWhitelist[string.lower(plr.Name)] = true
+        else
+            _G.SaturnWhitelist[id] = nil
+            _G.SaturnWhitelist[tostring(id)] = nil
+            _G.SaturnWhitelist[plr.Name] = nil
+            _G.SaturnWhitelist[string.lower(plr.Name)] = nil
+        end
+    end
+
+    local SHOP_TPS = {
+        { name = "$ Military",        pos = Vector3.new(28.3, 25.5, -833.8) },
+        { name = "$ Uphill",          pos = Vector3.new(482.6, 47.8, -614.3) },
+        { name = "$ Revolver",        pos = Vector3.new(-636.8, 21.7, -123.1) },
+        { name = "$ Old Military",    pos = Vector3.new(-1049.2, 21.5, -263.2) },
+        { name = "$ Shotgun",         pos = Vector3.new(-578.3, 8.2, -736.8) },
+        { name = "$ Uphill Revolver", pos = Vector3.new(538.1, 4.4, -255.3) },
+    }
+
+    local function teleportToPos(pos)
+        local hrp = me.Character and me.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0)) end
+    end
+
+    --==================================================
+    -- SKIN BACKEND
+    --==================================================
+    shared.Glory = shared.Glory or {
+        skins = {
+            enabled = true,
+            weapons = {
+                ["[Knife]"] = "", ["[Shotgun]"] = "", ["[Double-Barrel SG]"] = "",
+                ["[TacticalShotgun]"] = "", ["[Revolver]"] = "", ["[Flamethrower]"] = "", ["[RPG]"] = ""
+            }
+    }
+}
+local cfg = shared.Glory
+local knifedata, toolregistry = {}, {}
+
+local DEFAULT_KNIFE_OFFSET = {
+    positionoffset = Vector3.new(0, -0.20, -1.2),
+    rotationoffset = Vector3.new(90, 263.7, 180),
+    soundid = "",
+    animationid = "",
+}
+
+local knifeskins = {
+    ["Golden"] = { soundid = "", animationid = "", positionoffset = Vector3.new(0, -0.20, -1.2), rotationoffset = Vector3.new(90, 263.7, 180) },
+    ["Golden Age Tanto"] = { soundid = "rbxassetid://5917819099", animationid = "rbxassetid://13473404819", positionoffset = Vector3.new(0, -0.20, -1.2), rotationoffset = Vector3.new(90, 263.7, 180) },
+    ["GPO-Knife"] = { soundid = "rbxassetid://4604390759", animationid = "rbxassetid://14014278925", positionoffset = Vector3.new(0.00, -0.32, -1.07), rotationoffset = Vector3.new(90, -97.4, 90) },
+    ["Heaven"] = { soundid = "rbxassetid://14489860007", animationid = "rbxassetid://14500266726", positionoffset = Vector3.new(-0.02, -0.82, 0.20), rotationoffset = Vector3.new(64.42, 3.79, 0.00) },
+    ["Purple Dagger"] = { soundid = "rbxassetid://17822743153", animationid = "rbxassetid://17824999722", positionoffset = Vector3.new(-0.13, -0.24, -1.80), rotationoffset = Vector3.new(89.05, 96.63, 180.00) },
+    ["Dragon"] = { soundid = "rbxassetid://14217789230", animationid = "rbxassetid://14217804400", positionoffset = Vector3.new(-0.02, -0.32, -0.98), rotationoffset = Vector3.new(89.05, 90.95, 180.00) },
+    ["Void"] = { soundid = "rbxassetid://14756591763", animationid = "rbxassetid://14774699952", positionoffset = Vector3.new(-0.02, -0.22, -0.85), rotationoffset = Vector3.new(180.00, 90.95, 180.00) },
+    ["Ribbon"] = { soundid = "rbxassetid://130974579277249", animationid = "rbxassetid://124102609796063", positionoffset = Vector3.new(0.02, -0.25, -0.05), rotationoffset = Vector3.new(90.00, 0.00, 180.00) },
+    ["Love Kukri"] = { soundid = "", animationid = "", positionoffset = Vector3.new(0, -0.22, -1.15), rotationoffset = Vector3.new(90, 263.7, 180) },
+    ["LoveKukri"] = { soundid = "", animationid = "", positionoffset = Vector3.new(0, -0.22, -1.15), rotationoffset = Vector3.new(90, 263.7, 180) },
+}
+
+local function isFX(inst)
+    return inst:IsA("ParticleEmitter") or inst:IsA("Fire") or inst:IsA("Smoke")
+        or inst:IsA("Sparkles") or inst:IsA("Trail") or inst:IsA("Beam")
+end
+
+-- wipe ALL visual FX under a tool (old skin particles, trails, etc.)
+local function clearAllSkinFX(tool)
+    if not tool then return end
+    local toDestroy = {}
+    for _, v in ipairs(tool:GetDescendants()) do
+        if isFX(v) then
+            table.insert(toDestroy, v)
+        elseif v:IsA("Attachment") and v:GetAttribute("SaturnSkinFX") then
+            table.insert(toDestroy, v)
+        end
+    end
+    for _, v in ipairs(toDestroy) do
+        pcall(function() v:Destroy() end)
+    end
+end
+
+local function clearmesh(tool, exclude)
+    if not tool then return end
+    local kids = tool:GetChildren()
+    for _, v in ipairs(kids) do
+        if v == exclude then
+            -- keep
+        elseif v.Name == "CurrentSkin" or v:GetAttribute("SaturnSkin") then
+            pcall(function() v:Destroy() end)
+        elseif v:IsA("MeshPart") and v.Name ~= "Handle" and v.Name ~= "Default" then
+            pcall(function() v:Destroy() end)
+        elseif v:IsA("Model") and v.Name ~= "Default" then
+            pcall(function() v:Destroy() end)
+        end
+    end
+    clearAllSkinFX(tool)
+end
+
+local function clearParticles(root)
+    if not root then return end
+    local toDestroy = {}
+    for _, v in ipairs(root:GetDescendants()) do
+        if isFX(v) then table.insert(toDestroy, v) end
+        if v:IsA("Attachment") and v:GetAttribute("SaturnSkinFX") then table.insert(toDestroy, v) end
+    end
+    for _, v in ipairs(toDestroy) do pcall(function() v:Destroy() end) end
+end
+
+local function deepCloneParticles(source, target)
+    if not source or not target then return end
+    for _, child in ipairs(source:GetChildren()) do
+        if isFX(child) then
+            local c = child:Clone()
+            c:SetAttribute("SaturnSkinFX", true)
+            c.Parent = target
+        elseif child:IsA("Attachment") then
+            local att = child:Clone()
+            att:SetAttribute("SaturnSkinFX", true)
+            -- strip non-fx if needed; keep structure
+            att.Parent = target
+            for _, d in ipairs(att:GetDescendants()) do
+                if isFX(d) then d:SetAttribute("SaturnSkinFX", true) end
+            end
+        end
+    end
+end
+
+local function findParticleSource(folder, name)
+    if not folder then return nil end
+    local exact = folder:FindFirstChild(name)
+    if exact then return exact end
+    local lower = string.lower(name)
+    for _, ch in ipairs(folder:GetChildren()) do
+        if string.lower(ch.Name) == lower then return ch end
+    end
+    return nil
+end
+
+local function applygun(tool, name)
+    if not name or name == "" or not tool then return false end
+    local handle = tool:FindFirstChild("Handle")
+    local orig = tool:FindFirstChildOfClass("MeshPart") or tool:FindFirstChildWhichIsA("MeshPart")
+        or (handle and handle:IsA("MeshPart") and handle) or handle
+    if not orig then return false end
+
+    local skinmodules = ReplicatedStorage:FindFirstChild("SkinModules")
+    if not skinmodules then return false end
+    local ok, skinmodulesreq = pcall(function() return require(skinmodules) end)
+    if not ok or not skinmodulesreq then return false end
+    local toolData = skinmodulesreq[tool.Name]
+    if not toolData then return false end
+
+    local info = toolData[name]
+    if not info then
+        for skinName, skinInfo in pairs(toolData) do
+            if string.lower(tostring(skinName)) == string.lower(name) then
+                info = skinInfo
+                name = skinName
+                break
+            end
+        end
+    end
+    if not info then return false end
+
+    -- full cleanup of previous skin + particles first
+    clearmesh(tool, orig)
+    clearAllSkinFX(tool)
+    if handle then clearParticles(handle) end
+    if orig and orig ~= handle then clearParticles(orig) end
+
+    -- restore default visibility before applying
+    if orig:IsA("BasePart") and typeof(info.TextureID) == "string" then
+        orig.Transparency = 0
+    end
+
+    local skinpart = info.TextureID
+    if typeof(skinpart) == "Instance" then
+        local clone = skinpart:Clone()
+        clone.Name = "CurrentSkin"
+        clone:SetAttribute("SaturnSkin", true)
+        if clone:IsA("Model") then
+            if not clone.PrimaryPart then
+                for _, p in ipairs(clone:GetDescendants()) do
+                    if p:IsA("BasePart") then clone.PrimaryPart = p break end
+                end
+            end
+            for _, p in ipairs(clone:GetDescendants()) do
+                if p:IsA("BasePart") then
+                    p.CanCollide = false
+                    p.Massless = true
+                    p.Anchored = false
+                end
+            end
+            clone.Parent = tool
+            if clone.PrimaryPart and orig then
+                local w = Instance.new("Weld")
+                w.Part0 = orig
+                w.Part1 = clone.PrimaryPart
+                if info.CFrame then w.C0 = info.CFrame:Inverse() end
+                w.Parent = clone.PrimaryPart
+            end
+            if orig:IsA("BasePart") then orig.Transparency = 1 end
+        else
+            clone.CanCollide = false
+            clone.Massless = true
+            clone.Anchored = false
+            clone.Parent = tool
+            if orig:IsA("BasePart") then
+                local w = Instance.new("Weld")
+                w.Part0 = clone
+                w.Part1 = orig
+                if info.CFrame then w.C0 = info.CFrame:Inverse() end
+                w.Parent = clone
+                orig.Transparency = 1
+            end
+        end
+    elseif typeof(skinpart) == "string" and orig:IsA("MeshPart") then
+        orig.TextureID = skinpart
+        orig.Transparency = 0
+    end
+
+    -- only the matching particle set for THIS skin
+    if handle then
+        clearParticles(handle)
+        local skinassets = ReplicatedStorage:FindFirstChild("SkinAssets")
+        if skinassets then
+            local particlefolder = skinassets:FindFirstChild("GunHandleParticle")
+            local particlesource = findParticleSource(particlefolder, name)
+            if particlesource then
+                deepCloneParticles(particlesource, handle)
+            end
+        end
+        handle:SetAttribute("SkinName", name)
+    end
+    return true
+end
+
+local function cleanknife(tool)
+    local data = knifedata[tool]
+    if data then
+        if data.track then pcall(function() data.track:Stop() data.track:Destroy() end) end
+        if data.welds then for _, w in ipairs(data.welds) do if w then pcall(function() w:Destroy() end) end end end
+    end
+    clearAllSkinFX(tool)
+    local mesh = tool:FindFirstChild("Default")
+    if mesh then
+        for _, v in ipairs(mesh:GetChildren()) do
+            if v.Name == "Handle.R" or v:IsA("Model") or v:GetAttribute("SaturnSkin")
+                or (v:IsA("BasePart") and v.Name ~= "Default") then
+                pcall(function() v:Destroy() end)
+            end
+        end
+        clearParticles(mesh)
+        mesh.Transparency = 0
+    end
+    local handle = tool:FindFirstChild("Handle")
+    if handle then clearParticles(handle) end
+    knifedata[tool] = nil
+end
+
+local function findKnifeModel(knivesFolder, skin)
+    if not knivesFolder then return nil, skin end
+    local exact = knivesFolder:FindFirstChild(skin)
+    if exact then return exact, skin end
+    local lower = string.lower(skin)
+    -- try common variants
+    local alts = { skin, lower, skin:gsub("%s+", ""), skin:gsub("%s+", "-"), skin:gsub("%s+", "_") }
+    for _, alt in ipairs(alts) do
+        local m = knivesFolder:FindFirstChild(alt)
+        if m then return m, m.Name end
+    end
+    for _, ch in ipairs(knivesFolder:GetChildren()) do
+        if string.lower(ch.Name) == lower then return ch, ch.Name end
+        if string.find(string.lower(ch.Name), lower, 1, true) then return ch, ch.Name end
+        if string.find(lower, string.lower(ch.Name), 1, true) then return ch, ch.Name end
+    end
+    return nil, skin
+end
+
+local function applyknife(char, tool, skin)
+    if not skin or skin == "" or not tool or not char then return false end
+
+    local skincfg = knifeskins[skin]
+    if not skincfg then
+        for n, c in pairs(knifeskins) do
+            if string.lower(n) == string.lower(skin) then
+                skincfg = c
+                skin = n
+                break
+            end
+        end
+    end
+    -- allow any SkinModules knife even if not in table
+    if not skincfg then
+        skincfg = DEFAULT_KNIFE_OFFSET
+    end
+
+    local hum = char:FindFirstChild("Humanoid")
+    local rhand = char:FindFirstChild("RightHand") or char:FindFirstChild("Right Arm")
+    if not hum or not rhand then return false end
+
+    cleanknife(tool)
+    clearAllSkinFX(tool)
+
+    knifedata[tool] = { track = nil, welds = {} }
+    local data = knifedata[tool]
+    local mesh = tool:FindFirstChild("Default") or tool:FindFirstChild("Handle")
+    if not mesh then return false end
+    if mesh:IsA("BasePart") then mesh.Transparency = 1 end
+
+    local skinmodules = ReplicatedStorage:FindFirstChild("SkinModules")
+    if not skinmodules then
+        if mesh:IsA("BasePart") then mesh.Transparency = 0 end
+        return false
+    end
+    local knives = skinmodules:FindFirstChild("Knives")
+    if not knives then
+        if mesh:IsA("BasePart") then mesh.Transparency = 0 end
+        return false
+    end
+
+    local skinmodel, resolvedName = findKnifeModel(knives, skin)
+    if not skinmodel then
+        if mesh:IsA("BasePart") then mesh.Transparency = 0 end
+        return false
+    end
+    skin = resolvedName
+
+    local clone = skinmodel:Clone()
+    clone.Name = "CurrentKnifeSkin"
+    clone:SetAttribute("SaturnSkin", true)
+
+    local handr = Instance.new("Part")
+    handr.Name = "Handle.R"
+    handr.Transparency = 1
+    handr.CanCollide = false
+    handr.Size = Vector3.new(0.001, 0.001, 0.001)
+    handr.Massless = true
+    handr.Parent = mesh
+
+    local m6d = Instance.new("Motor6D")
+    m6d.Part0 = rhand
+    m6d.Part1 = handr
+    m6d.Parent = handr
+
+    local offset = CFrame.new(skincfg.positionoffset) * CFrame.Angles(
+        math.rad(skincfg.rotationoffset.X),
+        math.rad(skincfg.rotationoffset.Y),
+        math.rad(skincfg.rotationoffset.Z)
+    )
+
+    local function weldPart(p, relativeTo)
+        p.CanCollide = false
+        p.Massless = true
+        p.Anchored = false
+        local w = Instance.new("Weld")
+        w.Part0 = handr
+        w.Part1 = p
+        w.C0 = offset
+        if relativeTo then
+            w.C1 = p.CFrame:ToObjectSpace(relativeTo.CFrame)
+        end
+        w.Parent = p
+        table.insert(data.welds, w)
+    end
+
+    if clone:IsA("Model") then
+        if not clone.PrimaryPart then
+       
